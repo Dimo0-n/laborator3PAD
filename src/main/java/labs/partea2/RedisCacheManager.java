@@ -6,7 +6,10 @@ public class RedisCacheManager {
     private final Jedis jedis;
 
     public RedisCacheManager() {
-        this.jedis = new Jedis("localhost", 6379); // asigură-te că Redis e pornit
+        String host = System.getenv().getOrDefault("REDIS_HOST", "localhost");
+        int port = Integer.parseInt(System.getenv().getOrDefault("REDIS_PORT", "6379"));
+
+        this.jedis = new Jedis(host, port);
     }
 
     public String get(String key) {
@@ -16,8 +19,8 @@ public class RedisCacheManager {
     public void set(String key, String value, int ttlSeconds) {
         jedis.setex(key, ttlSeconds, value);
     }
+
     public void invalidateAll() {
         jedis.flushAll();
     }
-
 }

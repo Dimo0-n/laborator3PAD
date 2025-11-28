@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.http.*;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -114,10 +115,20 @@ public class ProxyServer {
             port = Integer.parseInt(args[0]);
         }
 
-        List<String> nodes = List.of(
-                "http://localhost:8081",
-                "http://localhost:8082"
-        );
+        String backendEnv = System.getenv("BACKENDS");
+        List<String> nodes;
+
+        if (backendEnv != null && !backendEnv.isBlank()) {
+            nodes = Arrays.stream(backendEnv.split(","))
+                    .map(String::trim)
+                    .toList();
+        } else {
+            // fallback pentru rulare locală
+            nodes = List.of(
+                    "http://localhost:8081",
+                    "http://localhost:8082"
+            );
+        }
 
         new ProxyServer(nodes).start(port);
     }

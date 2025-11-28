@@ -4,25 +4,22 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-//docker run --name mysql-container -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=lab -p 3306:3306 -d mysql:latest
-
-//create database lab;
-//USE lab;
-//d
-//CREATE TABLE employees (
-//        id INT PRIMARY KEY,
-//        name VARCHAR(255)
-//);
-
 public class MySQLConnector {
     private static Connection connection;
 
     public static void connect() throws SQLException {
         if (connection == null || connection.isClosed()) {
-            String url = "jdbc:mysql://localhost:3306/lab";
-            String user = "root";
-            String password = "root"; // schimbă dacă ai altă parolă
-            connection = DriverManager.getConnection(url, user, password);
+
+            String host = System.getenv().getOrDefault("DB_HOST", "localhost");
+            String port = System.getenv().getOrDefault("DB_PORT", "3306");
+            String db   = System.getenv().getOrDefault("DB_NAME", "lab");
+
+            String user = System.getenv().getOrDefault("DB_USER", "root");
+            String pass = System.getenv().getOrDefault("DB_PASS", "root");
+
+            String url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false";
+
+            connection = DriverManager.getConnection(url, user, pass);
         }
     }
 
