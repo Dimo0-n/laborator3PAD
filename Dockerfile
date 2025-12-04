@@ -16,6 +16,5 @@ COPY entrypoint.sh /app/entrypoint.sh
 
 RUN chmod +x /app/entrypoint.sh
 
-# Railway folosește variabila PORT din env, nu EXPOSE
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["labs.partea1.DWServer"]
+CMD ["labs.partea2.ProxyServer"]

@@ -9,7 +9,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["labs.partea1.DWServer"]
+    command: ["labs.partea1.DWServer"]  # ⬅️ Suprascrie CMD-ul default
     environment:
       PORT: 8081
       DB_URL: ${DB_URL}
@@ -22,7 +22,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["labs.partea2.ProxyServer"]
+    # ⬅️ NU pune command aici - va folosi CMD default (ProxyServer)
     environment:
       PORT: 8080
       DW_SERVERS: http://dw1:8081
