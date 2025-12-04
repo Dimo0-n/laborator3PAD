@@ -125,10 +125,7 @@ public class ProxyServer {
                     .map(String::trim)
                     .toList();
         } else {
-            nodes = List.of(
-                    "http://localhost:8081",
-                    "http://localhost:8082"
-            );
+            nodes = List.of("http://localhost:8081");
         }
 
         new ProxyServer(nodes).start(port);
