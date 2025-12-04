@@ -10,11 +10,12 @@ RUN mvn -q -DskipTests package dependency:copy-dependencies
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y redis-server && rm -rf /var/lib/apt/lists/*
+
 COPY --from=build /workspace/target/DistributedProxySystem-1.0-SNAPSHOT.jar /app/app.jar
 COPY --from=build /workspace/target/dependency /app/lib
-COPY entrypoint.sh /app/entrypoint.sh
+COPY start.sh /app/start.sh
 
-RUN chmod +x /app/entrypoint.sh
+RUN chmod +x /app/start.sh
 
-ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["labs.partea2.ProxyServer"]
+ENTRYPOINT ["/app/start.sh"]
