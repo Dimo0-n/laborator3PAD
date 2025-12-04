@@ -10,14 +10,32 @@ public class MySQLConnector {
     public static void connect() throws SQLException {
         if (connection == null || connection.isClosed()) {
 
-            String host = System.getenv().getOrDefault("DB_HOST", "localhost");
-            String port = System.getenv().getOrDefault("DB_PORT", "3306");
-            String db   = System.getenv().getOrDefault("DB_NAME", "lab");
+            String url = System.getenv("DB_URL");
+            String user = System.getenv("DB_USER");
+            String pass = System.getenv("DB_PASS");
 
-            String user = System.getenv().getOrDefault("DB_USER", "root");
-            String pass = System.getenv().getOrDefault("DB_PASS", "root");
+            if (url == null || url.isBlank()) {
+                // Permit fallback build from individual parts only if provided as env vars
+                String host = System.getenv("DB_HOST");
+                String port = System.getenv("DB_PORT");
+                String db = System.getenv("DB_NAME");
 
-            String url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false";
+                if (host != null && port != null && db != null) {
+                    url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false";
+                }
+            }
+
+            if (url == null || url.isBlank()) {
+                throw new IllegalStateException("Missing DB_URL (or DB_HOST/DB_PORT/DB_NAME) environment variables");
+            }
+
+            if (user == null || user.isBlank()) {
+                throw new IllegalStateException("Missing DB_USER environment variable");
+            }
+
+            if (pass == null || pass.isBlank()) {
+                throw new IllegalStateException("Missing DB_PASS environment variable");
+            }
 
             connection = DriverManager.getConnection(url, user, pass);
         }

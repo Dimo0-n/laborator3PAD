@@ -1,0 +1,83 @@
+ Înainte de deploy pe Railway, iată ce trebuie să eliminați/ajustați în structura ta:
+❌ Ce trebuie eliminat/modificat:
+1. Fișiere de configurare locale
+
+.gitignore - verifică că exclude fișierele sensibile
+Orice fișiere .env locale cu credențiale hardcodate
+Configurări cu path-uri absolute (C:\Users\dumi...)
+
+2. Din partea1 (DWServer)
+
+MySQLConnector.java - elimină credențialele hardcodate, folosește variabile de mediu
+Configurări specifice localhost în DWServer.java
+
+3. Fișiere inutile pentru deploy
+
+Folder .idea (configurări IntelliJ)
+Folder target (se va genera la build)
+Fișierele start_lab2.bat și start_lab2.sh - nu sunt necesare pe Railway
+
+4. Ajustări necesare
+Codul tău trebuie să citească configurările din variabile de mediu, nu hardcodate:
+java// În loc de:
+String dbUrl = "jdbc:mysql://localhost:3306/mydb";
+
+// Folosește:
+String dbUrl = System.getenv("DB_URL");
+String dbUser = System.getenv("DB_USER");
+String dbPass = System.getenv("DB_PASS");
+
+✅ Pașii din ghid sunt CORECȚI, dar câteva observații:
+📌 Pas 1-3 (Dockerfile-uri) - ✅ Corecți
+
+Asigură-te că ai generat JAR-urile cu mvn clean package înainte
+
+📌 Pas 3 (docker-compose.yml) - ✅ Corect, DAR:
+
+Nu trebuie să ai partea1 și partea2 ca servicii separate dacă reprezintă același DWServer
+Din structura ta, pare că ai:
+
+partea1: DWServer, Employee, EmployeeController, MySQLConnector
+partea2: ProxyServer, RedisCacheManager
+
+
+
+Deci docker-compose ar trebui:
+yamlservices:
+  redis:
+    image: redis:latest
+
+  dw1:
+    build: ./src/main/java/labs/partea1  # sau unde ai DWServer
+    environment:
+      PORT: 8081
+      DB_URL: ${DB_URL}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+
+  proxy:
+    build: ./src/main/java/labs/partea2  # sau unde ai ProxyServer
+    environment:
+      PORT: 8080
+      DW_SERVERS: "dw1:8081"
+      REDIS_HOST: redis
+📌 Pas 4 (Build) - ✅ Corect
+bashmvn clean package
+📌 Pas 5 (GitHub) - ✅ Corecți, dar adaugă:
+bash# Înainte de git init, creează .gitignore cu:
+target/
+.idea/
+*.iml
+.env
+
+🎯 Checklist final înainte de deploy:
+
+ JAR-urile se generează corect cu mvn package
+ Codul citește variabile de mediu (nu hardcoded)
+ .gitignore exclude target/, .idea/, credențiale
+ Dockerfile-urile sunt în folderele corecte
+ docker-compose.yml este în root
+ Porturile sunt configurate corect (DW pe 8081, Proxy pe 8080)
+ Redis și MySQL sunt configurate via env vars
+
+Ai nevoie de ajutor să reorganizezi structura sau să ajustezi codul pentru variabile de mediu?

@@ -12,9 +12,10 @@ public class DWServer {
 
     public static void main(String[] args) throws Exception {
 
-        int port = (args.length > 0)
-                ? Integer.parseInt(args[0])
-                : 8081;
+        String portEnv = System.getenv("PORT");
+        int port = (portEnv != null && !portEnv.isBlank())
+                ? Integer.parseInt(portEnv)
+                : (args.length > 0 ? Integer.parseInt(args[0]) : 8081);
 
         // Încarcă configurarea serverului
         ResourceConfig rc = new ResourceConfig()

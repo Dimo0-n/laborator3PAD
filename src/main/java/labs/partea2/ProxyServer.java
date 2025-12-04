@@ -1,12 +1,14 @@
 package labs.partea2;
 
-import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.net.http.*;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -35,7 +37,7 @@ public class ProxyServer {
         server.createContext("/", this::handleRequest);
         server.setExecutor(Executors.newCachedThreadPool());
 
-        System.out.println("Proxy running on http://localhost:" + port);
+        System.out.println("Proxy running on http://0.0.0.0:" + port);
         server.start();
     }
 
@@ -47,7 +49,6 @@ public class ProxyServer {
         System.out.println("[REQ] " + method + " " + path);
 
         try {
-            // CACHE CHECK
             if (method.equalsIgnoreCase("GET")) {
                 String cached = cache.get(cacheKey);
                 if (cached != null) {
@@ -60,18 +61,16 @@ public class ProxyServer {
                 }
             }
 
-            // LOAD BALANCER
             String backend = nextBackend();
             String targetUrl = backend + path;
 
-            System.out.println("[FORWARD] → " + targetUrl);
+            System.out.println("[FORWARD] -> " + targetUrl);
 
-            // BODY FOR POST/PUT
             byte[] reqBody = exchange.getRequestBody().readAllBytes();
             HttpRequest.BodyPublisher publisher =
-                    reqBody.length > 0 ?
-                            HttpRequest.BodyPublishers.ofByteArray(reqBody) :
-                            HttpRequest.BodyPublishers.noBody();
+                    reqBody.length > 0
+                            ? HttpRequest.BodyPublishers.ofByteArray(reqBody)
+                            : HttpRequest.BodyPublishers.noBody();
 
             HttpRequest forwardReq = HttpRequest.newBuilder()
                     .uri(URI.create(targetUrl))
@@ -83,7 +82,6 @@ public class ProxyServer {
 
             byte[] respBytes = resp.body();
 
-            // COPY HEADERS (except forbidden)
             resp.headers().map().forEach((key, vals) -> {
                 if (!key.equalsIgnoreCase("transfer-encoding") &&
                         !key.equalsIgnoreCase("content-length") &&
@@ -110,12 +108,16 @@ public class ProxyServer {
     }
 
     public static void main(String[] args) throws Exception {
-        int port = 8080; // default
-        if (args.length > 0) {
-            port = Integer.parseInt(args[0]);
+        String portEnv = System.getenv("PORT");
+        int port = (portEnv != null && !portEnv.isBlank())
+                ? Integer.parseInt(portEnv)
+                : (args.length > 0 ? Integer.parseInt(args[0]) : 8080);
+
+        String backendEnv = System.getenv("DW_SERVERS");
+        if (backendEnv == null || backendEnv.isBlank()) {
+            backendEnv = System.getenv("BACKENDS");
         }
 
-        String backendEnv = System.getenv("BACKENDS");
         List<String> nodes;
 
         if (backendEnv != null && !backendEnv.isBlank()) {
@@ -123,7 +125,6 @@ public class ProxyServer {
                     .map(String::trim)
                     .toList();
         } else {
-            // fallback pentru rulare locală
             nodes = List.of(
                     "http://localhost:8081",
                     "http://localhost:8082"
@@ -132,5 +133,4 @@ public class ProxyServer {
 
         new ProxyServer(nodes).start(port);
     }
-
 }
