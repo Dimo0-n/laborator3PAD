@@ -18,10 +18,9 @@ public class DWServer {
                 ? Integer.parseInt(portEnv)
                 : (args.length > 0 ? Integer.parseInt(args[0]) : 8081);
 
-        // 🔥 Configurare finală corectă
         ResourceConfig rc = new ResourceConfig()
                 .packages("labs.partea1.controllers", "labs.partea1.model")
-                .register(JacksonFeature.class);  // 🔥 OBLIGATORIU pentru JSON
+                .register(JacksonFeature.class);
 
         String uri = String.format(BASE_URI, port);
         HttpServer server = GrizzlyHttpServerFactory.createHttpServer(
