@@ -78,7 +78,12 @@ public class ProxyServer {
                     .method(method, publisher);
 
             exchange.getRequestHeaders().forEach((key, values) -> {
-                if (!key.equalsIgnoreCase("host")) {
+                List<String> banned = List.of(
+                        "host", "content-length", "connection",
+                        "transfer-encoding", "expect", "upgrade"
+                );
+
+                if (!banned.contains(key.toLowerCase())) {
                     values.forEach(v -> builder.header(key, v));
                 }
             });
