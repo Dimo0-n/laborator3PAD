@@ -20,6 +20,7 @@ public class DWServer {
         // Încarcă configurarea serverului
         ResourceConfig rc = new ResourceConfig()
                 .packages("labs.partea1.controllers", "labs.partea1.model")
+                .register(org.glassfish.jersey.jackson.JacksonFeature.class)
                 .register(org.glassfish.jersey.jaxb.internal.XmlJaxbElementProvider.App.class)
                 .register(org.glassfish.jersey.jaxb.internal.XmlJaxbElementProvider.Text.class)
                 .register(org.glassfish.jersey.jaxb.internal.XmlCollectionJaxbProvider.App.class)
