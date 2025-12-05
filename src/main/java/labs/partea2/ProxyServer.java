@@ -67,16 +67,23 @@ public class ProxyServer {
             System.out.println("[FORWARD] -> " + targetUrl);
 
             byte[] reqBody = exchange.getRequestBody().readAllBytes();
+
             HttpRequest.BodyPublisher publisher =
                     reqBody.length > 0
                             ? HttpRequest.BodyPublishers.ofByteArray(reqBody)
                             : HttpRequest.BodyPublishers.noBody();
 
-            HttpRequest forwardReq = HttpRequest.newBuilder()
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
                     .uri(URI.create(targetUrl))
-                    .method(method, publisher)
-                    .build();
+                    .method(method, publisher);
 
+            exchange.getRequestHeaders().forEach((key, values) -> {
+                if (!key.equalsIgnoreCase("host")) {
+                    values.forEach(v -> builder.header(key, v));
+                }
+            });
+
+            HttpRequest forwardReq = builder.build();
             HttpResponse<byte[]> resp =
                     client.send(forwardReq, HttpResponse.BodyHandlers.ofByteArray());
 
